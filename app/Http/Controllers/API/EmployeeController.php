@@ -119,4 +119,18 @@ class EmployeeController extends Controller
             'data'    => $director,
         ]);
     }
+
+    public function bulkNames(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'emp_ids'   => ['required', 'array', 'min:1', 'max:500'],
+            'emp_ids.*' => ['required', 'integer'],
+        ]);
+
+        $empIds = array_values(array_unique(array_filter(
+            array_map('intval', $validated['emp_ids'])
+        )));
+
+        return response()->json($this->service->getBulkNames($empIds));
+    }
 }

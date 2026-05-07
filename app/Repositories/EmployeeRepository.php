@@ -376,7 +376,8 @@ class EmployeeRepository
     {
         $query = EmployeeDetail::where('accstatus', 1)
             ->where('employid', '!=', 0)
-            ->whereRaw("CAST(employid AS CHAR) NOT LIKE '5%'");
+            ->whereRaw("CAST(employid AS CHAR) NOT LIKE '5%'")
+            ->with(['workDetail.departmentRel', 'workDetail.teamRel']);
 
         // Search functionality
         if (!empty($params['search'])) {
@@ -398,7 +399,7 @@ class EmployeeRepository
         $paginated = $query->paginate($perPage, ['employid', 'firstname', 'middlename', 'lastname'], 'page', $page);
 
         return [
-            'data' => $paginated->items(),
+            'data' => $paginated->items(), // Now includes workDetail with relationships
             'current_page' => $paginated->currentPage(),
             'last_page' => $paginated->lastPage(),
             'per_page' => $paginated->perPage(),

@@ -13,5 +13,6 @@ Route::middleware([ApiAuthMiddleware::class, 'throttle:api-reads'])->group(funct
         Route::get('/{employid}',       [EmployeeController::class, 'show'])->whereNumber('employid');
         Route::get('/{employid}/auth',  [EmployeeController::class, 'auth'])->whereNumber('employid');
         Route::get('/{employid}/work',  [EmployeeController::class, 'work'])->whereNumber('employid');
+        Route::post('/names/bulk', [EmployeeController::class, 'bulkNames']);
     });
 });

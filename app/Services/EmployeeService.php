@@ -429,15 +429,20 @@ class EmployeeService
     {
         $result = $this->repository->getActiveEmployeeList($params);
 
-        // Format the data
+        // Format the data with department and team
         $result['data'] = array_map(function ($e) {
+            $work = $e->workDetail;
+
             return [
-                'employid' => $e['employid'],
+                'employid' => $e->employid,
                 'emp_name' => trim(implode('', array_filter([
-                    !empty($e['lastname']) ? $e['lastname'] . ', ' : '',
-                    $e['firstname'] ?? '',
-                    !empty($e['middlename']) ? ' ' . strtoupper(substr($e['middlename'], 0, 1)) . '.' : ''
+                    !empty($e->lastname) ? $e->lastname . ', ' : '',
+                    $e->firstname ?? '',
+                    !empty($e->middlename) ? ' ' . strtoupper(substr($e->middlename, 0, 1)) . '.' : ''
                 ]))),
+
+                'department' => $work->departmentRel->dept_name ?? null,
+                'team' => $work->teamRel->team_name ?? null,
             ];
         }, $result['data']);
 
@@ -548,6 +553,26 @@ class EmployeeService
         return ['success' => true, 'message' => 'OK', 'data' => $data];
     }
 
+
+    public function getBulkNames(array $employids): array
+    {
+        $names = $this->repository->getEmployeeNames($employids);
+
+        $data = $names->map(fn($e) => [
+            'emp_id'   => $e->employid,
+            'emp_name' => trim(implode('', array_filter([
+                !empty($e->lastname)   ? $e->lastname . ', ' : '',
+                $e->firstname          ?? '',
+                !empty($e->middlename) ? ' ' . strtoupper(substr($e->middlename, 0, 1)) . '.' : '',
+            ]))),
+        ])->all();
+
+        return [
+            'success' => true,
+            'message' => 'OK',
+            'data'    => $data, // keyed by employid for O(1) lookup
+        ];
+    }
     private function notFound(): array
     {
         return [

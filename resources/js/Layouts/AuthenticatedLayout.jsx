@@ -21,7 +21,7 @@ export default function AuthenticatedLayout({ children }) {
                 {/* ── Footer ── */}
                 <footer className="px-6 py-1.5 shadow-lg flex items-center justify-end">
                     <span className="text-[9px] text-zinc-400 dark:text-zinc-600">
-                        Developed by:
+                        Developed by: Jester Ryan B. Tañada
                         <span className="font-semibold text-zinc-500 dark:text-zinc-500"></span>
                     </span>
                 </footer>
