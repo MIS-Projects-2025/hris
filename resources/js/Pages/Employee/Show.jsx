@@ -84,8 +84,12 @@ export default function EmployeeShow({
     changeRequests = {},
     attachments,
     adminLookups,
+    viewMode = "own",   // "admin" | "own" | "staff"
+    hasStaff = false,
 }) {
     const { is_admin } = usePage().props;
+    // For staff view: treat as read-only (no editing, no CR modal, no gov info)
+    const isStaffView = viewMode === "staff";
 
     const {
         tab,
@@ -110,7 +114,7 @@ export default function EmployeeShow({
 
     const [historyOpen, setHistoryOpen] = useState(false);
 
-    // Shorthand for admin editable field
+    // Shorthand for admin editable field (read-only for non-admin and staff views)
     const AField = ({
         label,
         value,
@@ -226,6 +230,7 @@ export default function EmployeeShow({
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 font-mono whitespace-nowrap">
                             Active Employee
                         </span>
+                        {(is_admin || hasStaff) && (
                         <div className="w-72">
                             <EmployeeCombobox
                                 options={employeeOptions}
@@ -237,6 +242,7 @@ export default function EmployeeShow({
                                 loadOptions={loadOptions}
                             />
                         </div>
+                    )}
                         <div className="flex-1" />
                         {is_admin && (
                             <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 uppercase tracking-widest">
@@ -285,7 +291,7 @@ export default function EmployeeShow({
                                 <h1 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
                                     {employee.emp_name}
                                 </h1>
-                                {!is_admin && (
+                                {!is_admin && !isStaffView && (
                                     <EditSectionDropdown
                                         onSelect={openModal}
                                         pendingMap={pendingMap}
@@ -349,7 +355,7 @@ export default function EmployeeShow({
                     {tab === "personal" && (
                         <>
                             <SectionDivider title="Basic Information" />
-                            {!is_admin && (
+                            {!is_admin && !isStaffView && (
                                 <>
                                     <PendingBadge
                                         request={pendingMap["name"]}
@@ -465,7 +471,7 @@ export default function EmployeeShow({
                             </div>
 
                             <SectionDivider title="Address" />
-                            {!is_admin && (
+                            {!is_admin && !isStaffView && (
                                 <PendingBadge request={pendingMap["address"]} />
                             )}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5 mt-3">
@@ -520,7 +526,7 @@ export default function EmployeeShow({
                             </div>
 
                             <SectionDivider title="Family" />
-                            {!is_admin && (
+                            {!is_admin && !isStaffView && (
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     <PendingBadge
                                         request={pendingMap["father"]}
@@ -781,34 +787,27 @@ export default function EmployeeShow({
                                 />
                             </div>
 
-                            {employee.gov_info && (
+                            {employee.gov_info && !isStaffView && (
                                 <>
                                     <SectionDivider title="Government Information" />
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
-                                        <Field
-                                            label="TIN No"
-                                            value={employee.gov_info.tin_no}
-                                        />
-                                        <Field
-                                            label="SSS No"
-                                            value={employee.gov_info.sss_no}
-                                        />
-                                        <Field
-                                            label="PhilHealth No"
-                                            value={
-                                                employee.gov_info.philhealth_no
-                                            }
-                                        />
-                                        <Field
-                                            label="Pag-IBIG No"
-                                            value={employee.gov_info.pagibig_no}
-                                        />
-                                        <Field
-                                            label="Bank Account"
-                                            value={
-                                                employee.gov_info.bank_acct_no
-                                            }
-                                        />
+                                        {is_admin ? (
+                                            <>
+                                                <AdminEditableField label="TIN No" value={employee.gov_info.tin_no} fieldKey="tin_no" table="gov_info" employid={encodedId} />
+                                                <AdminEditableField label="SSS No" value={employee.gov_info.sss_no} fieldKey="sss_no" table="gov_info" employid={encodedId} />
+                                                <AdminEditableField label="PhilHealth No" value={employee.gov_info.philhealth_no} fieldKey="philhealth_no" table="gov_info" employid={encodedId} />
+                                                <AdminEditableField label="Pag-IBIG No" value={employee.gov_info.pagibig_no} fieldKey="pagibig_no" table="gov_info" employid={encodedId} />
+                                                <AdminEditableField label="Bank Account" value={employee.gov_info.bank_acct_no} fieldKey="bank_acct_no" table="gov_info" employid={encodedId} />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Field label="TIN No" value={employee.gov_info.tin_no} />
+                                                <Field label="SSS No" value={employee.gov_info.sss_no} />
+                                                <Field label="PhilHealth No" value={employee.gov_info.philhealth_no} />
+                                                <Field label="Pag-IBIG No" value={employee.gov_info.pagibig_no} />
+                                                <Field label="Bank Account" value={employee.gov_info.bank_acct_no} />
+                                            </>
+                                        )}
                                     </div>
                                 </>
                             )}
@@ -911,8 +910,8 @@ export default function EmployeeShow({
                 />
             )}
 
-            {/* ── Change Request Modal (non-admin only) ── */}
-            {!is_admin && modalCategory && (
+            {/* ── Change Request Modal (own profile only) ── */}
+            {!is_admin && !isStaffView && modalCategory && (
                 <ChangeRequestModal
                     open
                     onClose={closeModal}

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\General\AdminController;
+use App\Http\Controllers\General\ExportController;
 use App\Http\Controllers\General\ImportController;
 use App\Http\Controllers\General\LookupController;
 use App\Http\Controllers\General\ProfileController;
@@ -28,6 +29,9 @@ Route::prefix($app_name)->middleware(AuthMiddleware::class)->group(function () {
     Route::post('/lookups/{type}',       [LookupController::class, 'store'])->name('lookups.store');
     Route::patch('/lookups/{type}/{id}', [LookupController::class, 'update'])->name('lookups.update');
     Route::delete('/lookups/{type}/{id}',[LookupController::class, 'destroy'])->name('lookups.destroy');
+
+    Route::get('/export',          [ExportController::class, 'index'])->name('export.index');
+    Route::post('/export/download',[ExportController::class, 'download'])->name('export.download');
   });
 
   Route::get("/", [DashboardController::class, 'index'])->name('dashboard');

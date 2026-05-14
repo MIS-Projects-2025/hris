@@ -20,8 +20,11 @@ class EmployeeController extends Controller
         protected EmployeeChangeRequestService $changeRequestService,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Illuminate\Http\RedirectResponse
     {
+        $isAdmin      = (int) session('emp_data.emp_id') === 0;
+        $sessionEmpId = (int) session('emp_data.emp_id');
+
         $encoded = $request->query('filters', '');
         $decoded = [];
         if ($encoded) {
@@ -34,35 +37,78 @@ class EmployeeController extends Controller
             array_flip(['search', 'company', 'department', 'status', 'class', 'page', 'per_page'])
         );
 
+        if (!$isAdmin) {
+            $staffIds = $this->employeeService->getDirectReportIds($sessionEmpId);
+
+            if (empty($staffIds)) {
+                return redirect()->route('employees.show', base64_encode($sessionEmpId));
+            }
+
+            return Inertia::render('Employee/Index', [
+                'employees'   => $this->employeeService->getStaffListForTable($sessionEmpId, $filters),
+                'filters'     => $filters,
+                'lookups'     => $this->employeeService->getIndexLookups(),
+                'isStaffOnly' => true,
+            ]);
+        }
+
         return Inertia::render('Employee/Index', [
-            'employees' => $this->employeeService->getEmployeeListForTable($filters),
-            'filters'   => $filters,
-            'lookups'   => $this->employeeService->getIndexLookups(),
+            'employees'   => $this->employeeService->getEmployeeListForTable($filters),
+            'filters'     => $filters,
+            'lookups'     => $this->employeeService->getIndexLookups(),
+            'isStaffOnly' => false,
         ]);
     }
 
     public function show(string $employid, Request $request): Response
     {
-        $employid = $this->decodeEmployid($employid);
-        $result   = $this->employeeService->getFullDetail($employid);
+        $employid     = $this->decodeEmployid($employid);
+        $result       = $this->employeeService->getFullDetail($employid);
 
         if (!$result['success']) {
             abort(404, 'Employee not found.');
         }
 
-        $isAdmin = (int) session('emp_data.emp_id') === 0;
+        $isAdmin      = (int) session('emp_data.emp_id') === 0;
+        $sessionEmpId = (int) session('emp_data.emp_id');
+
+        // Determine access level
+        $viewMode = 'own';
+        $staffIds = [];
+
+        if ($isAdmin) {
+            $viewMode = 'admin';
+        } elseif ($employid !== $sessionEmpId) {
+            $staffIds = $this->employeeService->getDirectReportIds($sessionEmpId);
+            if (!in_array($employid, $staffIds)) {
+                abort(403, 'Access denied.');
+            }
+            $viewMode = 'staff';
+        } else {
+            // own profile — check if they also have staff for the combobox
+            $staffIds = $this->employeeService->getDirectReportIds($sessionEmpId);
+        }
+
+        $hasStaff = !empty($staffIds);
 
         return Inertia::render('Employee/Show', [
             'employee'       => $result['data'],
             'shuttles'       => $this->shuttleService->getAll(),
             'adminLookups'   => $isAdmin ? $this->employeeService->getAdminLookups() : null,
-            'changeRequests' => $this->changeRequestService->getPendingMapForEmployee($employid),
+            'changeRequests' => $viewMode === 'own'
+                ? $this->changeRequestService->getPendingMapForEmployee($employid)
+                : [],
+            'viewMode'       => $viewMode,
+            'hasStaff'       => $hasStaff,
 
             'attachments' => Inertia::lazy(
                 fn() => $this->attachmentService->getForEmployee($employid)
             ),
 
-            'activeEmployees' => Inertia::lazy(function () use ($request) {
+            'activeEmployees' => Inertia::lazy(function () use ($request, $isAdmin, $sessionEmpId) {
+                if (!$isAdmin) {
+                    return $this->employeeService->getDirectReportsForCombobox($sessionEmpId);
+                }
                 $encoded = $request->query('q', '');
                 $params  = [];
                 if ($encoded) {

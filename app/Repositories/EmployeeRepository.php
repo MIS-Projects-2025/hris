@@ -193,6 +193,12 @@ class EmployeeRepository
             ?->fill([$field => $value ?: null])->save();
     }
 
+    public function updateGovInfoField(int $empId, string $field, mixed $value): void
+    {
+        EmployeeGovInfo::on('masterlist')->where('employid', $empId)->first()
+            ?->fill([$field => $value ?: null])->save();
+    }
+
     public function updateFamilyRow(string $familyType, int $rowId, int $empId, array $payload): void
     {
         $model = match ($familyType) {
@@ -406,12 +412,134 @@ class EmployeeRepository
             'total' => $paginated->total(),
         ];
     }
+    public function getDirectReportIds(int $empId): array
+    {
+        return EmployeeDetail::where('accstatus', 1)
+            ->where('employid', '!=', 0)
+            ->whereHas('workDetail.approver', function ($q) use ($empId) {
+                $q->where('approver1', $empId)
+                    ->orWhere('approver2', $empId)
+                    ->orWhere('approver3', $empId);
+            })
+            ->pluck('employid')
+            ->toArray();
+    }
+
+    public function getStaffListWithWorkDetail(int $empId, array $params = []): array
+    {
+        $staffIds = $this->getDirectReportIds($empId);
+
+        if (empty($staffIds)) {
+            return [
+                'data'         => [],
+                'current_page' => 1,
+                'last_page'    => 1,
+                'per_page'     => (int) ($params['per_page'] ?? 25),
+                'total'        => 0,
+            ];
+        }
+
+        $query = EmployeeDetail::with([
+            'workDetail.companyRel',
+            'workDetail.departmentRel',
+            'workDetail.jobTitleRel',
+            'workDetail.prodLineRel',
+            'workDetail.stationRel',
+            'workDetail.teamRel',
+            'workDetail.empPositionRel',
+            'workDetail.statusRel',
+            'workDetail.classRel',
+            'workDetail.shiftRel',
+            'workDetail.shuttleRel',
+            'workDetail.govInfo',
+        ])->whereIn('employid', $staffIds);
+
+        if (!empty($params['search'])) {
+            $s = $params['search'];
+            $query->where(function ($q) use ($s) {
+                $q->where('employid', 'like', "%{$s}%")
+                    ->orWhere('firstname', 'like', "%{$s}%")
+                    ->orWhere('lastname', 'like', "%{$s}%")
+                    ->orWhere('middlename', 'like', "%{$s}%");
+            });
+        }
+
+        $hasWorkFilter = !empty($params['company']) || !empty($params['department'])
+            || !empty($params['status']) || !empty($params['class']);
+
+        if ($hasWorkFilter) {
+            $query->whereHas('workDetail', function ($q) use ($params) {
+                if (!empty($params['company']))    $q->where('company',    $params['company']);
+                if (!empty($params['department'])) $q->where('department', $params['department']);
+                if (!empty($params['status']))     $q->where('empstatus',  $params['status']);
+                if (!empty($params['class']))      $q->where('empclass',   $params['class']);
+            });
+        }
+
+        $query->orderBy('firstname');
+        $perPage   = (int) ($params['per_page'] ?? 25);
+        $paginated = $query->paginate($perPage, ['*'], 'page', $params['page'] ?? 1);
+
+        return [
+            'data'         => $paginated->items(),
+            'current_page' => $paginated->currentPage(),
+            'last_page'    => $paginated->lastPage(),
+            'per_page'     => $paginated->perPage(),
+            'total'        => $paginated->total(),
+        ];
+    }
+
+    public function getAllForExport(array $params = []): Collection
+    {
+        $query = EmployeeDetail::with([
+            'workDetail.companyRel',
+            'workDetail.departmentRel',
+            'workDetail.jobTitleRel',
+            'workDetail.prodLineRel',
+            'workDetail.stationRel',
+            'workDetail.teamRel',
+            'workDetail.empPositionRel',
+            'workDetail.statusRel',
+            'workDetail.classRel',
+            'workDetail.shiftRel',
+            'workDetail.shuttleRel',
+            'workDetail.govInfo',
+            'workDetail.approver.approver1Detail',
+            'workDetail.approver.approver2Detail',
+            'workDetail.approver.approver3Detail',
+            'address',
+            'parents',
+            'spouse',
+            'siblings',
+            'children',
+        ])
+            ->where('accstatus', 1)
+            ->where('employid', '!=', 0)
+            ->whereRaw("CAST(employid AS CHAR) NOT LIKE '5%'");
+
+        if (!empty($params['company'])) {
+            $query->whereHas('workDetail', fn($q) => $q->where('company', $params['company']));
+        }
+        if (!empty($params['department'])) {
+            $query->whereHas('workDetail', fn($q) => $q->where('department', $params['department']));
+        }
+        if (!empty($params['status'])) {
+            $query->whereHas('workDetail', fn($q) => $q->where('empstatus', $params['status']));
+        }
+        if (!empty($params['class'])) {
+            $query->whereHas('workDetail', fn($q) => $q->where('empclass', $params['class']));
+        }
+
+        return $query->orderBy('firstname')->get();
+    }
+
     public function getDirectReports(int $empId): Collection
     {
         return EmployeeDetail::with([
             'workDetail.prodLineRel',
             'workDetail.departmentRel',
             'workDetail.stationRel',
+            'workDetail.teamRel',
         ])
             ->where('accstatus', 1)
             ->where('employid', '!=', 0)

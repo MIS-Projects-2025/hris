@@ -50,6 +50,15 @@ Route::prefix($app_name)->group(function () {
         ->middleware('throttle:cr-review')
         ->name('change-requests.reject');
 
+    // ── HR Bulk Actions ───────────────────────────────────────────────────────
+    Route::post('/change-requests/bulk-approve', [EmployeeChangeRequestController::class, 'bulkApprove'])
+        ->middleware('throttle:cr-review')
+        ->name('change-requests.bulk-approve');
+
+    Route::post('/change-requests/bulk-reject', [EmployeeChangeRequestController::class, 'bulkReject'])
+        ->middleware('throttle:cr-review')
+        ->name('change-requests.bulk-reject');
+
     // ── Attachments ───────────────────────────────────────────────────────────
     Route::get('/change-requests/attachments', [EmployeeChangeRequestController::class, 'listAttachments'])
         ->name('change-requests.attachments.index');

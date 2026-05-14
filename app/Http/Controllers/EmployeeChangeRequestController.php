@@ -7,6 +7,7 @@ use App\Models\EmployeeChangeRequest;
 use App\Repositories\ShuttleRepository;
 use App\Services\EmployeeAttachmentService;
 use App\Services\EmployeeChangeRequestService;
+use App\Services\EmployeeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,12 +20,19 @@ class EmployeeChangeRequestController extends Controller
         protected EmployeeChangeRequestService $service,
         protected EmployeeAttachmentService    $attachmentService,
         protected ShuttleRepository            $shuttleRepository,
+        protected EmployeeService              $employeeService,
     ) {}
 
-    // ─── HR Table Page ───────────────────────────────────────────────────────
+    // ─── Table Page ──────────────────────────────────────────────────────────
 
     public function index(Request $request): Response
     {
+        $isAdmin = (int) session('emp_data.emp_id') === 0;
+
+        if (!$isAdmin) {
+            return $this->indexForEmployee($request);
+        }
+
         $encoded = $request->query('filters', '');
         $decoded = [];
         if ($encoded) {
@@ -43,6 +51,41 @@ class EmployeeChangeRequestController extends Controller
             'filters'    => $filters,
             'categories' => EmployeeChangeRequest::CATEGORIES,
             'shuttles'   => $this->shuttleRepository->getAll(),
+            'isAdmin'    => true,
+            'hasStaff'   => false,
+        ]);
+    }
+
+    private function indexForEmployee(Request $request): Response
+    {
+        $empId = (int) session('emp_data.emp_id');
+
+        $encoded = $request->query('filters', '');
+        $decoded = [];
+        if ($encoded) {
+            $json    = base64_decode($encoded, strict: true);
+            $decoded = ($json !== false) ? (json_decode($json, associative: true) ?? []) : [];
+        }
+
+        $filters = array_intersect_key(
+            array_map('strval', $decoded),
+            array_flip(['status', 'category', 'date_from', 'date_to', 'employid', 'per_page', 'page'])
+        );
+
+        $staffIds = $this->employeeService->getDirectReportIds($empId);
+        $hasStaff = !empty($staffIds);
+
+        $ownRequests   = $this->service->getOwnRequests($empId, $filters);
+        $staffRequests = $hasStaff ? $this->service->getStaffRequests($staffIds, $filters) : null;
+
+        return Inertia::render('ChangeRequests/Index', [
+            'isAdmin'       => false,
+            'hasStaff'      => $hasStaff,
+            'ownRequests'   => ChangeRequestResource::collection($ownRequests),
+            'staffRequests' => $staffRequests ? ChangeRequestResource::collection($staffRequests) : null,
+            'filters'       => $filters,
+            'categories'    => EmployeeChangeRequest::CATEGORIES,
+            'shuttles'      => $this->shuttleRepository->getAll(),
         ]);
     }
 
@@ -72,6 +115,55 @@ class EmployeeChangeRequestController extends Controller
         }
 
         return back();
+    }
+
+    // ─── HR Bulk Actions ─────────────────────────────────────────────────────
+
+    public function bulkApprove(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids'     => ['required', 'array', 'min:1'],
+            'ids.*'   => ['integer'],
+            'remarks' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $result = $this->service->bulkApprove(
+                $validated['ids'],
+                session('emp_data.emp_id'),
+                $validated['remarks'] ?? ''
+            );
+
+            $msg = "Approved {$result['approved']} request(s).";
+            if (!empty($result['errors'])) {
+                $msg .= ' Some failed: ' . implode('; ', $result['errors']);
+            }
+
+            return back()->with('success', $msg);
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['message' => $e->getMessage()]);
+        }
+    }
+
+    public function bulkReject(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids'     => ['required', 'array', 'min:1'],
+            'ids.*'   => ['integer'],
+            'remarks' => ['required', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $result = $this->service->bulkReject(
+                $validated['ids'],
+                $validated['remarks'],
+                session('emp_data.emp_id')
+            );
+
+            return back()->with('success', "Rejected {$result['rejected']} request(s).");
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['message' => $e->getMessage()]);
+        }
     }
 
     // ─── Employee Submit ─────────────────────────────────────────────────────

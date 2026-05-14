@@ -158,6 +158,72 @@ class EmployeeChangeRequestService
         return $this->repository->getAllForHR($filters);
     }
 
+    /**
+     * Non-admin: own change requests (paginated).
+     */
+    public function getOwnRequests(int $employid, array $filters = [])
+    {
+        return $this->repository->getAllForEmployee($employid, $filters);
+    }
+
+    /**
+     * Non-admin manager: staff change requests (paginated).
+     */
+    public function getStaffRequests(array $employids, array $filters = [])
+    {
+        if (empty($employids)) {
+            return null;
+        }
+        return $this->repository->getAllForStaff($employids, $filters);
+    }
+
+    /**
+     * Admin: bulk-approve pending requests, applying each change to masterlist.
+     */
+    public function bulkApprove(array $ids, ?int $reviewerId = null, string $remarks = ''): array
+    {
+        $requests = EmployeeChangeRequest::whereIn('id', $ids)
+            ->where('status', EmployeeChangeRequest::STATUS_PENDING)
+            ->get();
+
+        $approved = 0;
+        $errors   = [];
+
+        foreach ($requests as $request) {
+            try {
+                $this->applyAction->execute($request);
+                $data = [
+                    'status'      => EmployeeChangeRequest::STATUS_APPROVED,
+                    'reviewed_at' => now(),
+                    'remarks'     => $remarks ?: null,
+                ];
+                if ($reviewerId !== null) {
+                    $data['reviewed_by'] = $reviewerId;
+                }
+                $request->update($data);
+                $approved++;
+            } catch (\Exception $e) {
+                $errors[] = "CR #{$request->id}: " . $e->getMessage();
+            }
+        }
+
+        return ['approved' => $approved, 'errors' => $errors];
+    }
+
+    /**
+     * Admin: bulk-reject pending requests.
+     */
+    public function bulkReject(array $ids, string $remarks, ?int $reviewerId = null): array
+    {
+        if (empty(trim($remarks))) {
+            throw new \RuntimeException('Rejection remarks are required.');
+        }
+
+        $rejected = $this->repository->bulkReject($ids, $remarks, $reviewerId);
+
+        return ['rejected' => $rejected];
+    }
+
     public function getAttachmentsForEmployee(int $employid)
     {
         return $this->attachmentRepository->getForEmployee($employid);

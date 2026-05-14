@@ -14,7 +14,7 @@ class AdminUpdateFieldRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'table'       => ['required', 'string', 'in:personal,address,work,approver,family'],
+            'table'       => ['required', 'string', 'in:personal,address,work,approver,family,gov_info'],
             'field'       => ['required', 'string', 'max:64'],
             'value'       => ['nullable'],
             'family_type' => ['nullable', 'string', 'in:parent,spouse,sibling,child'],

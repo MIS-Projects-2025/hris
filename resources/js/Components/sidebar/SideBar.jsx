@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 
 export default function Sidebar() {
-    const { display_name, emp_data, system_status } = usePage().props;
+    const { display_name, emp_data, system_status, is_admin } = usePage().props;
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -43,7 +43,7 @@ export default function Sidebar() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const isAdmin = emp_data?.emp_id == 1705;
+    const isAdmin = !!is_admin;
     const isInMaintenance = system_status?.status === "maintenance";
 
     useEffect(() => setMounted(true), []);

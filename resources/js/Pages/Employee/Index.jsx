@@ -7,7 +7,7 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 
-export default function EmployeeIndex({ employees, filters, lookups }) {
+export default function EmployeeIndex({ employees, filters, lookups, isStaffOnly = false }) {
     // ─────────────────────────────
     // SERVER STATE (source of truth)
     // ─────────────────────────────
@@ -133,7 +133,9 @@ export default function EmployeeIndex({ employees, filters, lookups }) {
             <div className="min-h-screen bg-background">
                 {/* HEADER */}
                 <div className="border-b border-border/50 px-6 py-4">
-                    <h1 className="text-[18px] font-semibold">Employees</h1>
+                    <h1 className="text-[18px] font-semibold">
+                        {isStaffOnly ? "My Staff" : "Employees"}
+                    </h1>
                     <p className="text-[13px] text-muted-foreground mt-0.5">
                         {total.toLocaleString()} active employee
                         {total !== 1 ? "s" : ""}

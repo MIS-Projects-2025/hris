@@ -1,12 +1,10 @@
 import { usePage } from "@inertiajs/react";
 import SidebarLink from "@/Components/sidebar/SidebarLink";
 
-import { User, Users, ClipboardList, Upload, Database } from "lucide-react";
-import Dropdown from "./DropDown";
+import { User, Users, ClipboardList, Upload, Database, Download } from "lucide-react";
 
 export default function NavLinks({ isSidebarOpen }) {
-    const { emp_data } = usePage().props;
-    console.log(emp_data);
+    const { emp_data, is_admin } = usePage().props;
 
     return (
         <nav
@@ -19,30 +17,42 @@ export default function NavLinks({ isSidebarOpen }) {
                 icon={<User className="w-5 h-5" />}
                 isSidebarOpen={isSidebarOpen}
             />
-            <SidebarLink
-                href={route("employees.index")}
-                label="Employee List"
-                icon={<Users className="w-5 h-5" />}
-                isSidebarOpen={isSidebarOpen}
-            />
+            {is_admin && (
+                <SidebarLink
+                    href={route("employees.index")}
+                    label="Employee List"
+                    icon={<Users className="w-5 h-5" />}
+                    isSidebarOpen={isSidebarOpen}
+                />
+            )}
             <SidebarLink
                 href={route("change-requests.index")}
                 label="Change Requests"
                 icon={<ClipboardList className="w-5 h-5" />}
                 isSidebarOpen={isSidebarOpen}
             />
-            <SidebarLink
-                href={route("import.index")}
-                label="Import"
-                icon={<Upload className="w-5 h-5" />}
-                isSidebarOpen={isSidebarOpen}
-            />
-            <SidebarLink
-                href={route("lookups.index")}
-                label="Lookups"
-                icon={<Database className="w-5 h-5" />}
-                isSidebarOpen={isSidebarOpen}
-            />
+            {is_admin && (
+                <>
+                    <SidebarLink
+                        href={route("import.index")}
+                        label="Import"
+                        icon={<Upload className="w-5 h-5" />}
+                        isSidebarOpen={isSidebarOpen}
+                    />
+                    <SidebarLink
+                        href={route("export.index")}
+                        label="Export"
+                        icon={<Download className="w-5 h-5" />}
+                        isSidebarOpen={isSidebarOpen}
+                    />
+                    <SidebarLink
+                        href={route("lookups.index")}
+                        label="Lookups"
+                        icon={<Database className="w-5 h-5" />}
+                        isSidebarOpen={isSidebarOpen}
+                    />
+                </>
+            )}
         </nav>
     );
 }

@@ -236,6 +236,7 @@ class EmployeeService
         'perma_city',
         'perma_province',
     ];
+    private const GOV_INFO_FIELDS = ['tin_no', 'sss_no', 'philhealth_no', 'pagibig_no', 'bank_acct_no'];
     private const APPROVER_FIELDS = ['approver1', 'approver2', 'approver3'];
     private const FAMILY_FIELDS = [
         'parent'  => ['parent_name', 'parent_bday', 'parent_age', 'parent_gender'],
@@ -250,6 +251,7 @@ class EmployeeService
             'address'  => $this->guardAndCall(self::ADDRESS_FIELDS,  $field, fn() => $this->repository->updateAddressField($empId, $field, $value)),
             'approver' => $this->guardAndCall(self::APPROVER_FIELDS, $field, fn() => $this->repository->updateApproverField($empId, $field, $value)),
             'work'     => $this->guardAndCall(self::WORK_FIELDS,     $field, fn() => $this->repository->updateWorkField($empId, $field, $value)),
+            'gov_info' => $this->guardAndCall(self::GOV_INFO_FIELDS, $field, fn() => $this->repository->updateGovInfoField($empId, $field, $value)),
             'family'   => $this->doFamilyUpdate($familyType, $rowId, $empId, $field, $value),
             default    => $this->guardAndCall(self::PERSONAL_FIELDS,  $field, fn() => $this->repository->updatePersonalField($empId, $field, $value)),
         };
@@ -489,6 +491,89 @@ class EmployeeService
             'has_more'     => $result['has_more'],
         ];
     }
+    public function getDirectReportIds(int $empId): array
+    {
+        return $this->repository->getDirectReportIds($empId);
+    }
+
+    public function getStaffListForTable(int $empId, array $params = []): array
+    {
+        $result = $this->repository->getStaffListWithWorkDetail($empId, $params);
+
+        $result['data'] = array_map(function ($e) {
+            $work = $e->workDetail;
+
+            return [
+                'emp_id'                 => $e->employid,
+                'firstname'              => $e->firstname,
+                'middlename'             => $e->middlename,
+                'lastname'               => $e->lastname,
+                'nickname'               => $e->nickname,
+                'birthday'               => $e->birthday,
+                'place_of_birth'         => $e->place_of_birth,
+                'emp_sex'                => $e->emp_sex == 1 ? 'Male' : ($e->emp_sex == 2 ? 'Female' : null),
+                'civil_status'           => $e->civil_status,
+                'religion'               => $e->religion,
+                'blood_type'             => $e->blood_type,
+                'height'                 => $e->height,
+                'weight'                 => $e->weight,
+                'email'                  => $e->email,
+                'contact_no'             => $e->contact_no,
+                'educational_attainment' => $e->educational_attainment,
+
+                'company'       => $work?->companyRel?->company_name,
+                'dept'          => $work?->departmentRel?->dept_name,
+                'job_title'     => $work?->jobTitleRel?->position,
+                'prod_line'     => $work?->prodLineRel?->pl_name,
+                'station'       => $work?->stationRel?->station_name,
+                'team'          => $work?->teamRel?->team_name,
+                'emp_position'  => $work?->empPositionRel?->emp_position_name,
+                'emp_status'    => $work?->statusRel?->status_name,
+                'emp_class'     => $work?->classRel?->class_name,
+                'shift_type'    => $work?->shiftRel?->shift_name,
+                'shuttle'       => $work?->shuttleRel?->shuttle_name,
+                'date_hired'    => $work?->date_hired,
+                'date_reg'      => $work?->date_reg,
+                'service_length' => $work?->service_length,
+
+                'tin_no'        => null, // hidden for non-admin staff view
+                'sss_no'        => null,
+                'philhealth_no' => null,
+                'pagibig_no'    => null,
+                'bank_acct_no'  => null,
+            ];
+        }, $result['data']);
+
+        return $result;
+    }
+
+    public function getDirectReportsForCombobox(int $empId): array
+    {
+        $employees = $this->repository->getDirectReports($empId);
+
+        $data = $employees->map(function ($e) {
+            $work = $e->workDetail;
+            return [
+                'employid'   => $e->employid,
+                'emp_name'   => trim(implode('', array_filter([
+                    !empty($e->lastname) ? $e->lastname . ', ' : '',
+                    $e->firstname ?? '',
+                    !empty($e->middlename) ? ' ' . strtoupper(substr($e->middlename, 0, 1)) . '.' : '',
+                ]))),
+                'department' => $work?->departmentRel?->dept_name ?? null,
+                'team'       => $work?->teamRel?->team_name ?? null,
+            ];
+        })->values()->all();
+
+        return [
+            'data'         => $data,
+            'current_page' => 1,
+            'last_page'    => 1,
+            'per_page'     => count($data),
+            'total'        => count($data),
+        ];
+    }
+
     public function getDirectReports(int $empId): array
     {
         $employees = $this->repository->getDirectReports($empId);
