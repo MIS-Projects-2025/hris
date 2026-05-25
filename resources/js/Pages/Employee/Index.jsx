@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/Components/ui/input";
 import EmployeeTable from "@/Components/Employee/EmployeeTable";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Combobox } from "@/components/ui/combobox";
+import { Button } from "@/Components/ui/button";
+import { Combobox } from "@/Components/ui/combobox";
 
 export default function EmployeeIndex({ employees, filters, lookups, isStaffOnly = false }) {
     // ─────────────────────────────

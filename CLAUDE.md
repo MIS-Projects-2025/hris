@@ -32,7 +32,7 @@ Three separate MySQL databases with explicit connection routing:
 - **`authify`** — SSO token validation only (read-only). `authify_sessions` table checked by `AuthMiddleware`.
 
 ### Authentication (SSO)
-`AuthMiddleware` intercepts all protected routes. It checks for a token via query param `?key` → cookie → session, then validates against `authify_sessions` in the Authify DB. On success, it sets session variables (`emp_id`, `emp_name`, `dept`, etc.). No token redirects to the Authify SSO server at `http://127.0.0.1:8001/login`.
+`AuthMiddleware` intercepts all protected routes. It checks for a token via query param `?key` → cookie → session, then validates against `authify_sessions` in the Authify DB. On success, it sets session variables (`emp_id`, `emp_name`, `dept`, etc.). No token redirects to the Authify SSO server at `http://192.168.1.12:8306/login`.
 
 Cookies are set via `Cookie::queue()` (not `->withCookie()`) because some responses are `BinaryFileResponse` instances (e.g. Excel downloads) which don't support `->withCookie()`.
 

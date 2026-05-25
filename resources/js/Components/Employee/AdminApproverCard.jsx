@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { router } from "@inertiajs/react";
-import { Combobox } from "@/components/ui/combobox";
+import { Combobox } from "@/Components/ui/combobox";
 import { initials, avatarPalette } from "@/Helpers/employee";
 
 export default function AdminApproverCard({ label, value, approverField, approverId, employid }) {

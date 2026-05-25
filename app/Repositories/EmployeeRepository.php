@@ -19,7 +19,7 @@ use App\Models\EmployeeStatus;
 use App\Models\EmployeeWorkDetail;
 use App\Models\JobTitle;
 use App\Models\MasterlistLogs;
-use App\Models\ProdLine;
+use App\Models\Prodline;
 use App\Models\Shuttle;
 use App\Models\Station;
 use App\Models\Team;
@@ -156,7 +156,7 @@ class EmployeeRepository
             'companies'   => $toOptions(EmployeeCompany::on('masterlist')->orderBy('company_name')->get(),   'company_name'),
             'departments' => $toOptions(EmployeeDepartment::on('masterlist')->orderBy('dept_name')->get(),    'dept_name'),
             'jobTitles'   => $toOptions(JobTitle::on('masterlist')->orderBy('position')->get(),               'position'),
-            'prodLines'   => $toOptions(ProdLine::on('masterlist')->orderBy('pl_name')->get(),                'pl_name'),
+            'prodLines'   => $toOptions(Prodline::on('masterlist')->orderBy('pl_name')->get(),                'pl_name'),
             'stations'    => $toOptions(Station::on('masterlist')->orderBy('station_name')->get(),            'station_name'),
             'teams'       => $toOptions(Team::on('masterlist')->orderBy('team_name')->get(),                  'team_name'),
             'positions'   => $toOptions(EmployeePosition::on('masterlist')->orderBy('emp_position_name')->get(), 'emp_position_name'),
@@ -282,7 +282,7 @@ class EmployeeRepository
             'company'     => [EmployeeCompany::class,    'company_name'],
             'department'  => [EmployeeDepartment::class, 'dept_name'],
             'job_title'   => [JobTitle::class,           'position'],
-            'prodline'    => [ProdLine::class,           'pl_name'],
+            'prodline'    => [Prodline::class,           'pl_name'],
             'station'     => [Station::class,            'station_name'],
             'team'        => [Team::class,               'team_name'],
             'empposition' => [EmployeePosition::class,   'emp_position_name'],

@@ -62,7 +62,7 @@ class EmployeeWorkDetail extends Model
 
     public function prodLineRel()
     {
-        return $this->belongsTo(ProdLine::class, 'prodline');
+        return $this->belongsTo(Prodline::class, 'prodline');
     }
 
     public function stationRel()

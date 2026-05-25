@@ -1,6 +1,6 @@
 import { Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { useImport } from "@/Hooks/useImport";
 
 const SHEET_DESCRIPTIONS = [

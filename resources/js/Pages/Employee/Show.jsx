@@ -1,8 +1,8 @@
 import { memo, useState } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Badge } from "@/components/ui/badge";
-import { Combobox } from "@/components/ui/combobox";
+import { Badge } from "@/Components/ui/badge";
+import { Combobox } from "@/Components/ui/combobox";
 
 import EditSectionDropdown from "@/Components/ChangeRequest/EditSectionDropdown";
 import ChangeRequestModal from "@/Components/ChangeRequest/ChangeRequestModal";

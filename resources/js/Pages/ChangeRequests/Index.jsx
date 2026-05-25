@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/Components/ui/input";
 import { Combobox } from "@/Components/ui/combobox";
 import { DatePicker } from "@/Components/ui/date-picker";
 import StatusBadge from "@/Components/ChangeRequest/StatusBadge";

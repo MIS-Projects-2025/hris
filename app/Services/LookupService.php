@@ -9,7 +9,7 @@ use App\Models\EmployeePosition;
 use App\Models\EmployeeShift;
 use App\Models\EmployeeStatus;
 use App\Models\JobTitle;
-use App\Models\ProdLine;
+use App\Models\Prodline;
 use App\Models\Shuttle;
 use App\Models\Station;
 use App\Models\Team;
@@ -41,7 +41,7 @@ class LookupService
         ],
         'prodlines' => [
             'label'     => 'Production Lines',
-            'model'     => ProdLine::class,
+            'model'     => Prodline::class,
             'nameField' => 'pl_name',
             'fields'    => [
                 ['name' => 'pl_name',    'label' => 'Production Line Name', 'type' => 'text',   'required' => true],

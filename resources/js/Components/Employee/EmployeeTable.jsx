@@ -12,8 +12,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+} from "@/Components/ui/table";
+import { Button } from "@/Components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -21,7 +21,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/Components/ui/dropdown-menu";
 import { Columns2 } from "lucide-react";
 
 const COLUMN_DEFS = [

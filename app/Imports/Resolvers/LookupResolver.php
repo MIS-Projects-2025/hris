@@ -9,7 +9,7 @@ use App\Models\EmployeePosition;
 use App\Models\EmployeeShift;
 use App\Models\EmployeeStatus;
 use App\Models\JobTitle;
-use App\Models\ProdLine;
+use App\Models\Prodline;
 use App\Models\Shuttle;
 use App\Models\Station;
 use App\Models\Team;
@@ -22,7 +22,7 @@ class LookupResolver
     {
         $this->maps['company']     = EmployeeCompany::pluck('id', 'company_name')->map(fn($id) => (int) $id)->toArray();
         $this->maps['department']  = EmployeeDepartment::pluck('id', 'dept_name')->map(fn($id) => (int) $id)->toArray();
-        $this->maps['prodline']    = ProdLine::pluck('id', 'pl_name')->map(fn($id) => (int) $id)->toArray();
+        $this->maps['prodline']    = Prodline::pluck('id', 'pl_name')->map(fn($id) => (int) $id)->toArray();
         $this->maps['job_title']   = JobTitle::pluck('id', 'position')->map(fn($id) => (int) $id)->toArray();
         $this->maps['station']     = Station::pluck('id', 'station_name')->map(fn($id) => (int) $id)->toArray();
         $this->maps['empstatus']   = EmployeeStatus::pluck('id', 'status_name')->map(fn($id) => (int) $id)->toArray();

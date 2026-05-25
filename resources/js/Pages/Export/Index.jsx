@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Combobox } from "@/components/ui/combobox";
-import { Button } from "@/components/ui/button";
+import { Combobox } from "@/Components/ui/combobox";
+import { Button } from "@/Components/ui/button";
 import { Download } from "lucide-react";
 
 const ALL_SECTIONS = [
