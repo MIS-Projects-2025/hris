@@ -27,7 +27,7 @@ export default function Profile({ profile, errors }) {
                     const token = localStorage.getItem("authify-token");
                     localStorage.removeItem("authify-token");
                     router.get(route("logout"));
-                    window.location.href = `http://192.168.1.12:8306/logout?key=${encodeURIComponent(
+                    window.location.href = `${import.meta.env.VITE_AUTHIFY_URL}/logout?key=${encodeURIComponent(
                         token,
                     )}&redirect=${encodeURIComponent(route("dashboard"))}`;
                 },

@@ -92,7 +92,7 @@ class AuthMiddleware
             session()->forget('emp_data');
             session()->flush();
             $redirectUrl = urlencode(route('dashboard'));
-            $authifyUrl  = "http://192.168.1.12:8306/logout?redirect={$redirectUrl}";
+            $authifyUrl  = config('services.authify.base_url') . "/logout?redirect={$redirectUrl}";
 
             return Inertia::render('Unauthorized', [
                 'logoutUrl' => $authifyUrl,
@@ -184,6 +184,6 @@ class AuthMiddleware
     private function redirectToLogin(Request $request)
     {
         $redirectUrl = urlencode($request->fullUrl());
-        return redirect("http://192.168.1.12:8306/login?redirect={$redirectUrl}");
+        return redirect(config('services.authify.base_url') . "/login?redirect={$redirectUrl}");
     }
 }

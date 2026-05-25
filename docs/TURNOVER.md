@@ -98,7 +98,7 @@ DB_AUTHIFY_PASSWORD=
 
 # SSO Configuration
 SSO_COOKIE_NAME=sso_token
-SSO_LOGIN_URL=http://192.168.1.12:8306/login
+SSO_LOGIN_URL=http://192.168.2.221:8200/login
 
 # Internal Service Key (for service-to-service calls)
 SSO_INTERNAL_KEY=your-internal-key
@@ -366,6 +366,6 @@ Check `ApplyChangeRequest` action. Ensure masterlist connection is configured co
 
 | Service | URL | Purpose |
 |---|---|---|
-| Authify SSO | http://192.168.1.12:8306 | Authentication |
+| Authify SSO | http://192.168.2.221:8200 | Authentication |
 | Masterlist DB | MySQL | Employee data |
 | HRIS DB | MySQL | Operational data |
