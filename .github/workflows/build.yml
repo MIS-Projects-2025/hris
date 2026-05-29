@@ -38,14 +38,14 @@ jobs:
             type=raw,value=latest
             type=sha,prefix=
 
-      - name: Write VITE env file
-        run: echo "${{ secrets.VITE_ENV }}" > .env
-
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            VITE_AUTHIFY_URL=/authify-api
           cache-from: type=gha
           cache-to: type=gha,mode=max
+            # VITE_AUTHIFY_URL=http://192.168.1.16:8201
