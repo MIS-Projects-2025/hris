@@ -15,10 +15,6 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
-# ARG VITE_AUTHIFY_URL=http://192.168.1.16:8201
-ARG VITE_AUTHIFY_URL=/authify-api
-ENV VITE_AUTHIFY_URL=$VITE_AUTHIFY_URL
-
 RUN npm ci && npm run build && rm -rf node_modules
 
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
